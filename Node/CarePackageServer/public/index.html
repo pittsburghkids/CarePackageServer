@@ -1,0 +1,42 @@
+<html>
+
+<head>
+    <style>
+    </style>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+
+    <canvas id="canvas" width="375" height="375"></canvas>
+    <button id="submit">Submit</button>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+        (function () {
+
+            const socket = io('http://localhost:4000');
+
+            var submitButton = document.getElementById("submit");
+            submitButton.addEventListener("click", function () {
+
+
+                let testPayload = {
+                    type: "meter.insert",
+                    itemName: "FourLeafClover",
+                    boxName: "BoxA"
+                }
+
+                socket.emit('data', JSON.stringify(testPayload));
+
+            }, false);
+        })();
+
+    </script>
+
+</body>
+
+</html>
