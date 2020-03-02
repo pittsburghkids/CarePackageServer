@@ -13,30 +13,61 @@
 
     <canvas id="canvas" width="375" height="375"></canvas>
 
-    <button id="insertItem">Loader Insert Item</button>
-    <button id="insertBox">Loader Insert Box</button>
-    <button id="removeBox">Loader Remove Box</button>
-
+    <button id="loaderInsertItemA">Loader Insert Item A</button>
+    <button id="loaderInsertBoxA">Loader Insert Box A</button>
+    <button id="loaderRemoveBoxA">Loader Remove Box A</button>
 
     <script src="/socket.io/socket.io.js"></script>
 
     <script>
         (function () {
 
+
+            const payloads = {
+
+                // loaderInsertItemA: {
+                //     boardName: "LoaderItemA",
+                //     type: "loader.insert",
+                //     itemName: "FourLeafClover",
+                //     boxName: "BoxA"
+                // },
+
+                loaderInsertItemA: {
+                    boardName: "LoaderItemA",
+                    type: "tag.found",
+                    itemName: "FourLeafClover",
+                    boxName: ""
+                },
+
+                loaderInsertBoxA: {
+                    boardName: "LoaderBoxA",
+                    type: "tag.found",
+                    itemName: "",
+                    boxName: "BoxA"
+                },
+
+                loaderRemoveBoxA: {
+                    boardName: "LoaderBoxA",
+                    type: "tag.removed",
+                    itemName: "",
+                    boxName: "BoxA"
+                },
+            }
+
             const socket = io('http://carepackagedepot.local:4000');
 
-            var insertItemButton = document.getElementById("insertItem");
-            insertItemButton.addEventListener("click", function () {
+            let buttons = document.getElementsByTagName('button');
+            for (let i = 0; i < buttons.length; i++) {
+                let button = buttons[i];
+                let buttonID = button.id;
 
-                let testPayload = {
-                    type: "meter.insert",
-                    itemName: "FourLeafClover",
-                    boxName: "BoxA"
-                }
+                button.addEventListener("click", () => {
+                    let payload = payloads[buttonID];
+                    console.log(payload);
+                    socket.emit('data', JSON.stringify(payload));
+                }, false);
+            }
 
-                socket.emit('data', JSON.stringify(testPayload));
-
-            }, false);
         })();
 
     </script>
