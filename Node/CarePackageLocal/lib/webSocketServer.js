@@ -38,7 +38,7 @@ class WebSocketServer extends EventEmitter {
                 this.emit("data", data);
 
                 this.wss.clients.forEach((client) => {
-                    if (client !== ws && client.readyState === WebSocket.OPEN) {
+                    if (client !== ws && client.readyState === this.WebSocket.OPEN) {
                         client.send(data);
                     }
                 });
