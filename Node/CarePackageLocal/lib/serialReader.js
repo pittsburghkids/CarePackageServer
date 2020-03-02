@@ -57,6 +57,7 @@ class SerialReader extends EventEmitter {
                         const serialPort = new this.SerialPort(port.comName, { baudRate: 115200 });
                     } catch (error) {
                         console.log("Could not open serial port. Device may not be ready.");
+                        return;
                     }
 
                     serialPort.on('open', () => {
