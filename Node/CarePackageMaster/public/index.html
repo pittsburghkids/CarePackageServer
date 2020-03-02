@@ -1,0 +1,46 @@
+<html>
+
+<head>
+    <title>Care Package</title>
+
+    <style>
+    </style>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+
+    <canvas id="canvas" width="375" height="375"></canvas>
+
+    <button id="insertItem">Loader Insert Item</button>
+    <button id="insertBox">Loader Insert Box</button>
+    <button id="removeBox">Loader Remove Box</button>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+        (function () {
+
+            const socket = io('http://carepackagedepot.local:4000');
+
+            var insertItemButton = document.getElementById("insertItem");
+            insertItemButton.addEventListener("click", function () {
+
+                let testPayload = {
+                    type: "meter.insert",
+                    itemName: "FourLeafClover",
+                    boxName: "BoxA"
+                }
+
+                socket.emit('data', JSON.stringify(testPayload));
+
+            }, false);
+        })();
+
+    </script>
+
+</body>
+
+</html>
