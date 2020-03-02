@@ -12,10 +12,10 @@ io.on('connection', function (socket) {
     console.log("Client connected.");
 
     socket.on('data', data => {
+        // Echo data.
         console.log(data);
-
+        // Broadcast to all socket clients.
         socket.broadcast.emit('data', data);
-
     });
 
     socket.on('disconnect', () => {
