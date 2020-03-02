@@ -53,7 +53,11 @@ class SerialReader extends EventEmitter {
                     console.log("Arduino found: " + port.serialNumber);
 
                     // Configure serial port.
-                    const serialPort = new this.SerialPort(port.comName, { baudRate: 115200 });
+                    try {
+                        const serialPort = new this.SerialPort(port.comName, { baudRate: 115200 });
+                    } catch (error) {
+                        console.log("Could not open serial port. Device may not be ready.");
+                    }
 
                     serialPort.on('open', () => {
                         console.log("Serial port opened: " + port.comName);
