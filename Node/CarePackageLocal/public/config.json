@@ -1,4 +1,10 @@
 {
+    "servers": [
+        {
+            "name": "CarePackageMaster",
+            "url": "http://carepackagedepot.local:4000/"
+        }
+    ],
     "boards": [
         {
             "name": "DepotBoxA",

@@ -2,10 +2,10 @@ const EventEmitter = require('events');
 
 class SocketIOClient extends EventEmitter {
 
-    constructor() {
+    constructor(server) {
         super();
 
-        this.socket = require('socket.io-client')('http://carepackagedepot.local:4000');
+        this.socket = require('socket.io-client')(server.url);
 
         this.socket.on('connect', () => {
             console.log("socket.io connect");

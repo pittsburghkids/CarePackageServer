@@ -2,20 +2,22 @@
 
 // Read config.
 const fs = require('fs');
-let configJSON = fs.readFileSync('public/config.json');
-let config = JSON.parse(configJSON);
+const configJSON = fs.readFileSync('public/config.json');
+const config = JSON.parse(configJSON);
+
+const carePackageMasterServer = getServerByName("CarePackageMaster");
 
 // WebSocketServer handles network activity.
-let WebSocketServer = require('./lib/webSocketServer');
-let webSocketServer = new WebSocketServer();
+const WebSocketServer = require('./lib/webSocketServer');
+const webSocketServer = new WebSocketServer();
 
 // SocketIO Client talks to main server.
-let SocketIOClient = require('./lib/socketIOClient');
-let socketIOClient = new SocketIOClient();
+const SocketIOClient = require('./lib/socketIOClient');
+const socketIOClient = new SocketIOClient(carePackageMasterServer);
 
 // SerialReader handles incoming data from the Arduinos.
-let SerialReader = require('./lib/serialReader');
-let serialReader = new SerialReader();
+const SerialReader = require('./lib/serialReader');
+const serialReader = new SerialReader();
 
 socketIOClient.on('data', (data) => {
     // Send data to websocket clients.
@@ -59,6 +61,17 @@ serialReader.on('data', (data) => {
     // Send data to websocket clients.
     webSocketServer.broadcast(dataString);
 });
+
+// Find a URL by the server name.
+
+function getServerByName(serverName) {
+    for (const server of config.servers) {
+        if (server.name == serverName) {
+            return server;
+        }
+    }
+    return null;
+}
 
 // Find our board by its serial number.
 function getBoardBySerialNumber(serialNumber) {
