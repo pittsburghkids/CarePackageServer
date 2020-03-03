@@ -5,20 +5,20 @@
 #include <Adafruit_PN532.h>
 
 // SPI
-#define PN532_SCK  (2)
-#define PN532_MOSI (3)
-#define PN532_SS   (4)
-#define PN532_MISO (5)
-
-// I2C
-//#define PN532_IRQ   (2)
-//#define PN532_RESET (3)
+// #define PN532_SCK  (2)
+// #define PN532_MOSI (3)
+// #define PN532_SS   (4)
+// #define PN532_MISO (5)
 
 // SPI
-Adafruit_PN532 nfc(PN532_SCK, PN532_MISO, PN532_MOSI, PN532_SS);
+//Adafruit_PN532 nfc(PN532_SCK, PN532_MISO, PN532_MOSI, PN532_SS);
 
 // I2C
-//Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
+#define PN532_IRQ   (2)
+#define PN532_RESET (3)
+
+// I2C
+Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 
 void setup(void) {
 

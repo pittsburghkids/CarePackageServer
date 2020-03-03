@@ -21,6 +21,14 @@
         {
             "name": "LoaderItemA",
             "serialNumber": "55838323535351F03152"
+        },
+        {
+            "name": "LoaderBoxB",
+            "serialNumber": "9573033393735160E1D1"
+        },
+        {
+            "name": "LoaderItemB",
+            "serialNumber": "558383235353515181C2"
         }
     ],
     "boxes": [
