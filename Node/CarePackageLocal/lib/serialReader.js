@@ -41,7 +41,11 @@ class SerialReader extends EventEmitter {
 
     findArduinos() {
         console.log("Looking for Arduinos.");
-        this.SerialPort.list((err, ports) => {
+
+
+        const SerialPort = require('serialport');
+
+        SerialPort.list().then(ports => {
             ports.forEach((port) => {
                 if (port.manufacturer != undefined && port.manufacturer.indexOf("Arduino" > -1)) {
 
@@ -53,21 +57,15 @@ class SerialReader extends EventEmitter {
                     console.log("Arduino found: " + port.serialNumber);
 
                     // Configure serial port.
-                    let serialPort;
-                    try {
-                        serialPort = new this.SerialPort(port.comName, { baudRate: 115200 });
-                    } catch (error) {
-                        console.log("Could not open serial port. Device may not be ready.");
-                        return;
-                    }
+                    let serialPort = new this.SerialPort(port.path, { baudRate: 115200 });
 
                     serialPort.on('open', () => {
-                        console.log("Serial port opened: " + port.comName);
+                        console.log("Serial port opened: " + port.path);
                         this.ActiveSerialPorts[port.serialNumber] = port;
                     });
 
                     serialPort.on('close', () => {
-                        console.log("Serial port closed: " + port.comName);
+                        console.log("Serial port closed: " + port.path);
                         delete this.ActiveSerialPorts[port.serialNumber];
                     });
 
