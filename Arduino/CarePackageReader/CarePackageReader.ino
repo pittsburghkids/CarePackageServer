@@ -23,17 +23,18 @@ Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 void setup(void) {
 
   Serial.begin(115200);
+  
   Serial.println("Looking for board...");
-
   nfc.begin();
 
+  // Try to talk to reader.
   uint32_t versiondata = nfc.getFirmwareVersion();
   if (!versiondata) {
     Serial.print("Didn't find PN53x board.");
     while (1); // Halt.
   }
 
-  // Found Reader.
+  // Found reader.
   Serial.print("Found chip PN5"); Serial.println((versiondata >> 24) & 0xFF, HEX);
   Serial.print("Firmware version "); Serial.print((versiondata >> 16) & 0xFF, DEC);
   Serial.print('.'); Serial.println((versiondata >> 8) & 0xFF, DEC);
@@ -41,6 +42,7 @@ void setup(void) {
   // Configure board to read RFID tags.
   nfc.SAMConfig();
 
+  // Ready to read.
   Serial.println("Waiting for tag...");
 }
 
