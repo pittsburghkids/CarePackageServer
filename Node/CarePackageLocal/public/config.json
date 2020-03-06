@@ -31,6 +31,23 @@
             "serialNumber": "558383235353515181C2"
         }
     ],
+    "locations": [
+        {
+            "name": "House"
+        },
+        {
+            "name": "Hospital"
+        },
+        {
+            "name": "School"
+        },
+        {
+            "name": "PoliceStation"
+        },
+        {
+            "name": "FireStation"
+        }
+    ],
     "boxes": [
         {
             "name": "BoxA",
