@@ -2,41 +2,21 @@ const EventEmitter = require('events');
 
 class SerialReader extends EventEmitter {
 
+    SerialPort = require('serialport');
+
+    cobs = require('cobs');
+    parser = this.cobs.decodeStream();
+
+    ActiveSerialPorts = {};
+
     constructor() {
         super();
 
-        this.SerialPort = require('serialport');
-        this.Readline = require('@serialport/parser-readline');
-        this.ActiveSerialPorts = {};
-
-        this.checkTags();
         this.findArduinos();
 
         setInterval(() => {
             this.findArduinos();
         }, 5000);
-
-        setInterval(() => {
-            this.checkTags();
-        }, 500);
-    }
-
-    checkTags() {
-
-        for (let key in this.ActiveSerialPorts) {
-            let port = this.ActiveSerialPorts[key];
-
-            if (port.lastValue != undefined && port.lastValueTime < Date.now() - 500) {
-                let data = {
-                    type: "tag.removed",
-                    rfidValue: port.lastValue,
-                    boardSerialNumber: port.serialNumber
-                }
-                this.emit("data", data);
-
-                port.lastValue = undefined;
-            }
-        }
     }
 
     findArduinos() {
@@ -65,30 +45,48 @@ class SerialReader extends EventEmitter {
                         delete this.ActiveSerialPorts[port.serialNumber];
                     });
 
-                    // Set up serial port reading.
-                    const parser = new this.Readline();
-                    serialPort.pipe(parser);
+                    // Read serial port stream.
+                    serialPort.pipe(this.parser).on('data', buffer => {
 
-                    // Read serial data.
-                    parser.on('data', line => {
-                        let value = Number.parseInt(line);
-                        if (Number.isInteger(value)) {
+                        // Board messages.
+                        if (buffer.byteLength == 1) {
+                            let type = buffer.readUInt8();
+                            let typeString = "";
 
-                            if (value != port.lastValue) {
-
-                                let data = {
-                                    type: "tag.found",
-                                    rfidValue: value,
-                                    boardSerialNumber: port.serialNumber
-                                }
-
-                                this.emit("data", data);
+                            switch (type) {
+                                case 100: { typeString = "board.searching" } break;
+                                case 101: { typeString = "board.missing" } break;
+                                case 102: { typeString = "board.found" } break;
+                                case 103: { typeString = "board.ready" } break;
                             }
 
-                            port.lastValue = value;
-                            port.lastValueTime = Date.now();
+                            let data = {
+                                type: typeString,
+                                boardSerialNumber: port.serialNumber
+                            }
+
+                            console.log(data);
                         }
-                    })
+
+                        // Tag messages.
+                        if (buffer.byteLength == 5) {
+
+                            let type = buffer.slice(0).readUInt8();
+                            let value = buffer.slice(1).readUInt32LE();
+
+                            let typeString = (type == 0) ? "tag.removed" : "tag.found";
+
+                            let data = {
+                                type: typeString,
+                                rfidValue: value,
+                                boardSerialNumber: port.serialNumber
+                            }
+
+                            this.emit("data", data);
+                        }
+
+                    });
+
                 }
             });
         });
