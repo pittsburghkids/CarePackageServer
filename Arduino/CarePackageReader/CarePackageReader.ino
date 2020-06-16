@@ -56,13 +56,17 @@ void loop(void) {
 
   if (success) {
 
-    long uidLong = 0;
-
-    for (int i = 0; i < uidLength; i++) {
-      uidLong += (long)uid[i] << i * 8;
+    if (uidLength == 4)
+    {
+      uint32_t cardid = uid[0];
+      cardid <<= 8;
+      cardid |= uid[1];
+      cardid <<= 8;
+      cardid |= uid[2];  
+      cardid <<= 8;
+      cardid |= uid[3]; 
+      Serial.println(cardid);
     }
-
-    Serial.println(uidLong, DEC);
 
     delay(250);
   }
