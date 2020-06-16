@@ -1,73 +1,134 @@
-#define MIFAREDEBUG
-
+#include <PacketSerial.h>
 #include <Wire.h>
 #include <SPI.h>
 #include <Adafruit_PN532.h>
 
-// SPI
-// #define PN532_SCK  (2)
-// #define PN532_MOSI (3)
-// #define PN532_SS   (4)
-// #define PN532_MISO (5)
+/*
+   Begin Settings
+*/
 
-// SPI
-//Adafruit_PN532 nfc(PN532_SCK, PN532_MISO, PN532_MOSI, PN532_SS);
+//#define DEBUG       // Uncoment to print raw values to serial instead of using COBS.
+#define RETRIES 16  // Number of tries per loop for the NFC reader.
+#define TIMEOUT 100 // Removed message sent after this time without seeing tag.
 
-// I2C
+/*
+   End Settings
+*/
+
 #define PN532_IRQ   (2)
 #define PN532_RESET (3)
-
-// I2C
 Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
+
+#define TAG_REMOVED 0
+#define TAG_FOUND 1
+
+#define BOARD_SEARCH 100
+#define BOARD_MISSING 101
+#define BOARD_FOUND 102
+#define BOARD_READY 103
+
+PacketSerial packetSerial;
+
+typedef union id
+{
+  uint32_t value;
+  byte     bytes[4];
+};
+
+bool tagPresent = false;
+id tagID;
+id newTagID;
+uint32_t tagTime;
+
+uint8_t success;
+uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };
+uint8_t uidLength;
 
 void setup(void) {
 
   Serial.begin(115200);
-  
-  Serial.println("Looking for board...");
+  packetSerial.setStream(&Serial);
+
+  sendMessage(BOARD_SEARCH);
   nfc.begin();
 
   // Try to talk to reader.
   uint32_t versiondata = nfc.getFirmwareVersion();
   if (!versiondata) {
-    Serial.print("Didn't find PN53x board.");
+    sendMessage(BOARD_MISSING);
     while (1); // Halt.
   }
 
-  // Found reader.
-  Serial.print("Found chip PN5"); Serial.println((versiondata >> 24) & 0xFF, HEX);
-  Serial.print("Firmware version "); Serial.print((versiondata >> 16) & 0xFF, DEC);
-  Serial.print('.'); Serial.println((versiondata >> 8) & 0xFF, DEC);
+  sendMessage(BOARD_FOUND);
 
   // Configure board to read RFID tags.
   nfc.SAMConfig();
 
+  // Retry count per loop.
+  nfc.setPassiveActivationRetries(RETRIES);
+
   // Ready to read.
-  Serial.println("Waiting for tag...");
+  sendMessage(BOARD_READY);
 }
 
 
 void loop(void) {
-  uint8_t success;
-  uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };
-  uint8_t uidLength;
+  // Remove timed-out cards.
+  if (tagPresent && (millis() - tagTime > TIMEOUT)) {
+    sendTagMessage(TAG_REMOVED, tagID);
+    tagPresent = false;
+  }
 
+
+  // Detect new cards.
   success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
 
   if (success) {
 
+    // Only watch for 4-byte mifare cards.
     if (uidLength == 4)
     {
-      uint32_t cardid = uid[0];
-      cardid <<= 8;
-      cardid |= uid[1];
-      cardid <<= 8;
-      cardid |= uid[2];  
-      cardid <<= 8;
-      cardid |= uid[3]; 
-      Serial.println(cardid);
-    }
+      // Calculate card ID.
+      newTagID.bytes[0] = uid[0];
+      newTagID.bytes[1] = uid[1];
+      newTagID.bytes[2] = uid[2];
+      newTagID.bytes[3] = uid[3];
 
-    delay(250);
+      byte messageType;
+
+      if (tagPresent && (newTagID.value != tagID.value)) {
+        // Remove old tag.
+        sendTagMessage(TAG_REMOVED, tagID);
+
+        // Add new tag.
+        tagID = newTagID;
+        sendTagMessage(TAG_FOUND, tagID);
+      }
+
+      if (!tagPresent) {
+        tagID = newTagID;
+        sendTagMessage(TAG_FOUND, tagID);
+        tagPresent = true;
+      }
+
+      tagTime = millis();
+
+    }
   }
+
+  packetSerial.update();
+}
+
+void sendMessage(byte type) {
+  packetSerial.send(&type, 1);
+}
+
+void sendTagMessage(byte type, id tag) {
+  size_t byteCount = 5;
+  byte bytes[byteCount];
+
+  memcpy(&bytes[0], &type, 1);
+  memcpy(&bytes[1], &tag.bytes, 4);
+
+  packetSerial.send(bytes, byteCount);
 }
