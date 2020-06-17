@@ -5,7 +5,6 @@ class SerialReader extends EventEmitter {
     SerialPort = require('serialport');
 
     cobs = require('cobs');
-    parser = this.cobs.decodeStream();
 
     ActiveSerialPorts = {};
 
@@ -17,6 +16,7 @@ class SerialReader extends EventEmitter {
         setInterval(() => {
             this.findArduinos();
         }, 5000);
+
     }
 
     findArduinos() {
@@ -25,28 +25,34 @@ class SerialReader extends EventEmitter {
             ports.forEach((port) => {
                 if (port.manufacturer != undefined && port.manufacturer.indexOf("Arduino" > -1)) {
 
-                    if (this.ActiveSerialPorts[port.serialNumber] != undefined) {
-                        console.log("Arduino already active: " + port.serialNumber);
+                    if (this.ActiveSerialPorts[port.comName] != undefined) {
+                        console.log("Arduino already active: " + port.serialNumber + " " + port.comName);
                         return;
                     }
 
-                    console.log("Arduino found: " + port.serialNumber);
+                    console.log("Arduino found: " + port.serialNumber + " " + port.comName);
 
                     // Configure serial port.
                     let serialPort = new this.SerialPort(port.comName, { baudRate: 115200 });
 
                     serialPort.on('open', () => {
                         console.log("Serial port opened: " + port.comName);
-                        this.ActiveSerialPorts[port.serialNumber] = port;
+                        this.ActiveSerialPorts[port.comName] = port;
+                    });
+
+                    serialPort.on('error', (error) => {
+                        console.log("Could not open port: " + port.comName + " (" + error + ")");
                     });
 
                     serialPort.on('close', () => {
                         console.log("Serial port closed: " + port.comName);
-                        delete this.ActiveSerialPorts[port.serialNumber];
+                        delete this.ActiveSerialPorts[port.comName];
                     });
 
+
                     // Read serial port stream.
-                    serialPort.pipe(this.parser).on('data', buffer => {
+                    let parser = this.cobs.decodeStream();
+                    serialPort.pipe(parser).on('data', buffer => {
 
                         // Board messages.
                         if (buffer.byteLength == 1) {
@@ -69,10 +75,10 @@ class SerialReader extends EventEmitter {
                         }
 
                         // Tag messages.
-                        if (buffer.byteLength == 5) {
+                        if (buffer.byteLength == 8) {
 
                             let type = buffer.slice(0).readUInt8();
-                            let value = buffer.slice(1).readUInt32LE();
+                            let value = buffer.slice(1).toString("hex").toUpperCase();;
 
                             let typeString = (type == 0) ? "tag.removed" : "tag.found";
 

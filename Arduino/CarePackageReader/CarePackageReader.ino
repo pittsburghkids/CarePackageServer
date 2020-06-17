@@ -8,6 +8,7 @@
 */
 
 //#define DEBUG     // Uncoment to print raw values to serial instead of using COBS.
+//#define TAG_ONLY  // Print only the tag in DEBUG mode, useful for programming tags.
 #define RETRIES 16  // Number of tries per loop for the NFC reader.
 #define TIMEOUT 100 // Removed message sent after this time without seeing tag.
 
@@ -29,10 +30,12 @@ Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 
 PacketSerial packetSerial;
 
+
+// Union to see values as bytes or
 typedef union id
 {
-  uint32_t value;
-  byte     bytes[4];
+  uint64_t value;
+  byte     bytes[8];
 };
 
 bool tagPresent = false;
@@ -41,8 +44,6 @@ id newTagID;
 uint32_t tagTime;
 
 uint8_t success;
-uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };
-uint8_t uidLength;
 
 void setup(void) {
 
@@ -73,6 +74,9 @@ void setup(void) {
 
 
 void loop(void) {
+  uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };
+  uint8_t uidLength;
+
   // Remove timed-out cards.
   if (tagPresent && (millis() - tagTime > TIMEOUT)) {
     sendTagMessage(TAG_REMOVED, tagID);
@@ -85,14 +89,11 @@ void loop(void) {
 
   if (success) {
 
-    // Only watch for 4-byte mifare cards.
-    if (uidLength == 4)
+    // Only watch for 4-byte an 7-byte ids.
+    if (uidLength == 4 || uidLength == 7)
     {
-      // Calculate card ID.
-      newTagID.bytes[0] = uid[0];
-      newTagID.bytes[1] = uid[1];
-      newTagID.bytes[2] = uid[2];
-      newTagID.bytes[3] = uid[3];
+
+      memcpy(&newTagID.bytes, &uid, 7);
 
       byte messageType;
 
@@ -120,7 +121,7 @@ void loop(void) {
 }
 
 void sendMessage(byte type) {
-#ifdef DEBUG
+#if defined(DEBUG)
   Serial.println(type);
 #else
   packetSerial.send(&type, 1);
@@ -128,17 +129,41 @@ void sendMessage(byte type) {
 }
 
 void sendTagMessage(byte type, id tag) {
-  size_t byteCount = 5;
+
+#if defined(DEBUG) && defined(TAG_ONLY)
+  if (type == TAG_FOUND) {
+    
+  Serial.print("");
+  for (int i = 0; i < 7; i++) {
+    char hexString[2] = {0, 0};
+    sprintf(hexString, "%02X", tag.bytes[i]);
+    Serial.print(hexString);
+  }
+  Serial.println(""); 
+  }
+#endif
+
+#if defined(DEBUG) && !defined(TAG_ONLY)
+  Serial.print("Type: ");
+  Serial.print(type);
+  Serial.print(" ");
+  Serial.print("HEX: ");
+
+  for (int i = 0; i < 7; i++) {
+    char hexString[2] = {0, 0};
+    sprintf(hexString, "%02X", tag.bytes[i]);
+    Serial.print(hexString);
+  }
+  Serial.println("");
+#endif
+
+#if !defined(DEBUG) && !defined(TAG_ONLY)
+  size_t byteCount = 8;
   byte bytes[byteCount];
 
   memcpy(&bytes[0], &type, 1);
-  memcpy(&bytes[1], &tag.bytes, 4);
+  memcpy(&bytes[1], &tag.bytes, 7);
 
-#ifdef DEBUG
-  Serial.print(type);
-  Serial.print(" ");
-  Serial.println(tag.value);
-#else
   packetSerial.send(bytes, byteCount);
 #endif
 
