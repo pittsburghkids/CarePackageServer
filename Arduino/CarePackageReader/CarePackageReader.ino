@@ -7,7 +7,7 @@
    Begin Settings
 */
 
-//#define DEBUG       // Uncoment to print raw values to serial instead of using COBS.
+//#define DEBUG     // Uncoment to print raw values to serial instead of using COBS.
 #define RETRIES 16  // Number of tries per loop for the NFC reader.
 #define TIMEOUT 100 // Removed message sent after this time without seeing tag.
 
@@ -120,7 +120,11 @@ void loop(void) {
 }
 
 void sendMessage(byte type) {
+#ifdef DEBUG
+  Serial.println(type);
+#else
   packetSerial.send(&type, 1);
+#endif
 }
 
 void sendTagMessage(byte type, id tag) {
@@ -130,5 +134,12 @@ void sendTagMessage(byte type, id tag) {
   memcpy(&bytes[0], &type, 1);
   memcpy(&bytes[1], &tag.bytes, 4);
 
+#ifdef DEBUG
+  Serial.print(type);
+  Serial.print(" ");
+  Serial.println(tag.value);
+#else
   packetSerial.send(bytes, byteCount);
+#endif
+
 }
