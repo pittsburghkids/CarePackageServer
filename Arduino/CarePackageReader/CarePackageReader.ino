@@ -45,6 +45,8 @@ uint32_t tagTime;
 
 uint8_t success;
 
+void(* resetFunc) (void) = 0;
+
 void setup(void) {
 
   Serial.begin(115200);
@@ -57,7 +59,8 @@ void setup(void) {
   uint32_t versiondata = nfc.getFirmwareVersion();
   if (!versiondata) {
     sendMessage(BOARD_MISSING);
-    while (1); // Halt.
+    delay(1000);
+    resetFunc();    
   }
 
   sendMessage(BOARD_FOUND);
@@ -137,7 +140,7 @@ void sendTagMessage(byte type, id tag) {
   for (int i = 0; i < 7; i++) {
     char hexString[2] = {0, 0};
     sprintf(hexString, "%02X", tag.bytes[i]);
-    Serial.print(hexString);
+    Serial.print(strupr(hexString));
   }
   Serial.println(""); 
   }
@@ -152,7 +155,7 @@ void sendTagMessage(byte type, id tag) {
   for (int i = 0; i < 7; i++) {
     char hexString[2] = {0, 0};
     sprintf(hexString, "%02X", tag.bytes[i]);
-    Serial.print(hexString);
+    Serial.print(strupr(hexString));
   }
   Serial.println("");
 #endif
