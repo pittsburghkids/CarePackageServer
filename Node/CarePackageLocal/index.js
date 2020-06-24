@@ -36,18 +36,22 @@ serialReader.on('data', (data) => {
     let board = getBoardBySerialNumber(data.boardSerialNumber);
     let item = getItemByRFID(data.rfidValue);
     let box = getBoxByRFID(data.rfidValue);
+    let destination = getDestinationByEncoderValue(data.encoderValue);
 
     if (board != null) {
         data.boardName = board.name;
     }
 
     if (item != null) {
-        data.itemUnicode = item.unicode;
         data.itemName = item.name;
     }
 
     if (box != null) {
         data.boxName = box.name;
+    }
+
+    if (destination != null) {
+        data.destinationName = destination.name;
     }
 
     console.log(data)
@@ -100,5 +104,16 @@ function getItemByRFID(rfid) {
             return item;
         }
     }
+    return null;
+}
+
+// Find destination based on encoder value.
+function getDestinationByEncoderValue(encoderValue) {
+    const destinationIndex = Math.floor((encoderValue / 255) * config.destinations.length);
+
+    if (destinationIndex >= 0 && destinationIndex < config.destinations.length) {
+        return config.destinations[destinationIndex];
+    }
+
     return null;
 }

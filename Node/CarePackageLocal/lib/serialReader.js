@@ -17,6 +17,7 @@ class SerialReader extends EventEmitter {
             this.findArduinos();
         }, 5000);
 
+
     }
 
     findArduinos() {
@@ -72,6 +73,27 @@ class SerialReader extends EventEmitter {
                             }
 
                             console.log(data);
+                        }
+
+                        // Encoder messages.
+                        if (buffer.byteLength == 3) {
+                            let type = buffer[0];
+                            let index = buffer[1];
+                            let value = buffer[2];
+
+                            // Since we're sharing a board between both loaders,
+                            // append an identifier to the serial number to make
+                            // it look like two boards. 
+
+                            let serialNumber = port.serialNumber + "-" + index;
+
+                            let data = {
+                                type: "encoder.change",
+                                encoderValue: value,
+                                boardSerialNumber: serialNumber
+                            }
+
+                            this.emit("data", data);
                         }
 
                         // Tag messages.

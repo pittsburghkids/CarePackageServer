@@ -27,15 +27,23 @@
             "serialNumber": "0197240D"
         },
         {
+            "name": "LoaderAddressA",
+            "serialNumber": "xxx-A"
+        },
+        {
             "name": "LoaderBoxB",
             "serialNumber": "017D3CE6"
         },
         {
             "name": "LoaderItemB",
             "serialNumber": "019729FF"
+        },
+        {
+            "name": "LoaderAddressB",
+            "serialNumber": "xxx-B"
         }
     ],
-    "locations": [
+    "destinations": [
         {
             "name": "House"
         },
@@ -46,7 +54,7 @@
             "name": "School"
         },
         {
-            "name": "PoliceStation"
+            "name": "Airport"
         },
         {
             "name": "FireStation"
@@ -244,7 +252,6 @@
     "items": [
         {
             "name": "HammerAndWrench",
-            "unicode": "1f6e0",
             "ids": [
                 "04C80F6AA24884",
                 "0409096AA24885",
@@ -260,7 +267,6 @@
         },
         {
             "name": "Cupcake",
-            "unicode": "1f9c1",
             "ids": [
                 "040D1F1AA24881",
                 "047A1D1AA24880",
@@ -276,7 +282,6 @@
         },
         {
             "name": "Rabbit",
-            "unicode": "1f407",
             "ids": [
                 "04BD076AA24884",
                 "04BA0D6AA24884",
@@ -292,7 +297,6 @@
         },
         {
             "name": "Basketball",
-            "unicode": "1f3c0",
             "ids": [
                 "04960C6AA24884",
                 "0481086AA24884",
@@ -308,7 +312,6 @@
         },
         {
             "name": "WomansHat",
-            "unicode": "1f452",
             "ids": [
                 "04A00E1AA24880",
                 "049D0D6AA24884",
@@ -324,7 +327,6 @@
         },
         {
             "name": "Crayon",
-            "unicode": "1f58d",
             "ids": [
                 "04C40E6AA24884",
                 "04B60C6AA24884",
@@ -340,7 +342,6 @@
         },
         {
             "name": "HeartDecoration",
-            "unicode": "1f49f",
             "ids": [
                 "04791E1AA24880",
                 "04111D1AA24881",
@@ -356,7 +357,6 @@
         },
         {
             "name": "Kite",
-            "unicode": "1fa81",
             "ids": [
                 "0423086AA24885",
                 "04FB0E1AA24880",
@@ -372,7 +372,6 @@
         },
         {
             "name": "Blossom",
-            "unicode": "1f33c",
             "ids": [
                 "04F70C6AA24884",
                 "04991D1AA24880",
@@ -388,7 +387,6 @@
         },
         {
             "name": "Bicycle",
-            "unicode": "1f6b2",
             "ids": [
                 "04FB1E1AA24880",
                 "04FC0E1AA24880",
@@ -404,7 +402,6 @@
         },
         {
             "name": "Rainbow",
-            "unicode": "1f308",
             "ids": [
                 "04AA0F6AA24884",
                 "04AF106AA24884",
@@ -420,7 +417,6 @@
         },
         {
             "name": "TeddyBear",
-            "unicode": "1f9f8",
             "ids": [
                 "04B70C6AA24884",
                 "045B1E1AA24880",
@@ -436,7 +432,6 @@
         },
         {
             "name": "FourLeafClover",
-            "unicode": "2618",
             "ids": [
                 "04DC0D6AA24884",
                 "04E20B6AA24884",
@@ -452,7 +447,6 @@
         },
         {
             "name": "BlueBook",
-            "unicode": "1f4d8",
             "ids": [
                 "04D9106AA24884",
                 "042B1F1AA24881",
@@ -468,7 +462,6 @@
         },
         {
             "name": "Guitar",
-            "unicode": "1f3b8",
             "ids": [
                 "0480086AA24884",
                 "04FA1E1AA24880",

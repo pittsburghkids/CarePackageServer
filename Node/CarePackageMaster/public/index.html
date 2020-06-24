@@ -11,8 +11,7 @@
 
 <body>
 
-    <canvas id="canvas" width="375" height="375"></canvas>
-
+    <button id="loaderAddress">Loader Set Address</button>
     <button id="loaderInsertItemA">Loader Insert Item A</button>
     <button id="loaderInsertBoxA">Loader Insert Box A</button>
     <button id="loaderRemoveBoxA">Loader Remove Box A</button>
@@ -25,18 +24,18 @@
 
             const payloads = {
 
-                // loaderInsertItemA: {
-                //     boardName: "LoaderItemA",
-                //     type: "loader.insert",
-                //     itemName: "FourLeafClover",
-                //     boxName: "BoxA"
-                // },
+                loaderAddress: {
+                    boardName: "LoaderItemA",
+                    type: "loader.address",
+                    destinationName: "Hospital",
+                    boxName: "BoxA"
+                },
 
                 loaderInsertItemA: {
                     boardName: "LoaderItemA",
                     type: "tag.found",
                     itemName: "FourLeafClover",
-                    boxName: ""
+                    boxName: "BoxA"
                 },
 
                 loaderInsertBoxA: {
@@ -54,7 +53,7 @@
                 },
             }
 
-            const socket = io('http://carepackagedepot.local:4000');
+            const socket = io();
 
             let buttons = document.getElementsByTagName('button');
             for (let i = 0; i < buttons.length; i++) {
