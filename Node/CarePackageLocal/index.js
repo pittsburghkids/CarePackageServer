@@ -109,7 +109,7 @@ function getItemByRFID(rfid) {
 
 // Find destination based on encoder value.
 function getDestinationByEncoderValue(encoderValue) {
-    const destinationIndex = Math.floor((encoderValue / 255) * config.destinations.length);
+    const destinationIndex = encoderValue % config.destinations.length;
 
     if (destinationIndex >= 0 && destinationIndex < config.destinations.length) {
         return config.destinations[destinationIndex];
