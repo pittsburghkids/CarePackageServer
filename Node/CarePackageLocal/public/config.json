@@ -28,7 +28,7 @@
         },
         {
             "name": "LoaderAddressA",
-            "serialNumber": "xxx-A"
+            "serialNumber": "01999A3D-0"
         },
         {
             "name": "LoaderBoxB",
@@ -40,12 +40,15 @@
         },
         {
             "name": "LoaderAddressB",
-            "serialNumber": "xxx-B"
+            "serialNumber": "01999A3D-1"
         }
     ],
     "destinations": [
         {
             "name": "House"
+        },
+        {
+            "name": "Apartment"
         },
         {
             "name": "Hospital"
@@ -58,6 +61,12 @@
         },
         {
             "name": "FireStation"
+        },
+        {
+            "name": "Factory"
+        },
+        {
+            "name": "Office"
         }
     ],
     "boxes": [
