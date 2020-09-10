@@ -45,28 +45,28 @@
     ],
     "destinations": [
         {
-            "name": "House"
+            "name": "Beach"
         },
         {
-            "name": "Apartment"
+            "name": "Building"
+        },
+        {
+            "name": "Farm"
+        },
+        {
+            "name": "Fire"
         },
         {
             "name": "Hospital"
         },
         {
+            "name": "House"
+        },
+        {
+            "name": "Museum"
+        },
+        {
             "name": "School"
-        },
-        {
-            "name": "Airport"
-        },
-        {
-            "name": "FireStation"
-        },
-        {
-            "name": "Factory"
-        },
-        {
-            "name": "Office"
         }
     ],
     "boxes": [
