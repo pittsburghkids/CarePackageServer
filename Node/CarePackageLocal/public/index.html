@@ -1,0 +1,176 @@
+<html>
+
+<head>
+    <title>Care Package</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+    </style>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+
+    <h1>CarePackage Debug</h1>
+
+    <h2>Loader</h2>
+
+    <h3>Box Events</h3>
+    <div id="loaderBoxEvents"></div>
+
+    <h3>Tag Found Events</h3>
+    <div id="loaderTagFoundEvents"></div>
+
+    <h3>Encoder Change Events</h3>
+    <div id="loaderEncoderChangeEvents"></div>
+
+    <h2>Loader To Depot</h2>
+
+    <h3>Loader Insert Events</h3>
+    <div id="loaderInsertEvents"></div>
+
+    <h3>Loader Address Events</h3>
+    <div id="loaderAddressEvents"></div>
+
+    <h2>Depot</h2>
+
+    <div id="depotBoxEvents"></div>
+
+    <script>
+        (async function () {
+
+            // WS
+
+            const ws = new WebSocket("ws://localhost:8080");
+
+            ws.onopen = function (e) {
+                console.log("Connection established");
+            };
+
+            ws.onmessage = function (event) {
+            };
+
+            ws.onclose = function (event) {
+                if (event.wasClean) {
+                } else {
+                }
+            };
+
+            ws.onerror = function (error) {
+                console.log(error.message);
+            };
+
+            // Config
+
+            const response = await fetch("/config.json");
+            const json = await response.json();
+
+            const loaderTagFoundEvents = document.getElementById('loaderTagFoundEvents');
+            json.items.forEach((item) => {
+                addButton(loaderTagFoundEvents, item.name, {
+                    boardName: "LoaderItemA",
+                    type: "tag.found",
+                    itemName: item.name,
+                });
+            });
+
+            const loaderInsertEvents = document.getElementById('loaderInsertEvents');
+            json.items.forEach((item) => {
+                addButton(loaderInsertEvents, item.name, {
+                    boardName: "LoaderItemA",
+                    type: "loader.insert",
+                    itemName: item.name,
+                    boxName: "BoxA"
+                });
+            });
+
+            const loaderEncoderChangeEvents = document.getElementById('loaderEncoderChangeEvents');
+            json.destinations.forEach((destination) => {
+                addButton(loaderEncoderChangeEvents, destination.name, {
+                    boardName: "LoaderAddressA",
+                    type: "encoder.change",
+                    destinationName: destination.name,
+                });
+            });
+
+            const loaderAddressEvents = document.getElementById('loaderAddressEvents');
+            json.destinations.forEach((destination) => {
+                addButton(loaderAddressEvents, destination.name, {
+                    boardName: "LoaderAddressA",
+                    type: "loader.address",
+                    boxName: "BoxA",
+                    destinationName: destination.name,
+                });
+            });
+
+
+            // Other Buttons
+
+            const payloads = {
+                loaderInsertBoxA: {
+                    boardName: "LoaderBoxA",
+                    type: "tag.found",
+                    boxName: "BoxA"
+                },
+                loaderRemoveBoxA: {
+                    boardName: "LoaderBoxA",
+                    type: "tag.removed",
+                    boxName: "BoxA"
+                },
+                depotBoxTop: {
+                    boardName: "DepotBoxB",
+                    type: "tag.found",
+                    boxName: "BoxA"
+                },
+                depotBoxSide: {
+                    boardName: "DepotBoxA",
+                    type: "tag.found",
+                    boxName: "BoxA"
+                }
+            }
+
+            const loaderBoxEvents = document.getElementById('loaderBoxEvents');
+            addButton(loaderBoxEvents, "Box Found", {
+                boardName: "LoaderBoxA",
+                type: "tag.found",
+                boxName: "BoxA"
+            });
+            addButton(loaderBoxEvents, "Box Removed", {
+                boardName: "LoaderBoxA",
+                type: "tag.removed",
+                boxName: "BoxA"
+            });
+
+
+            const depotBoxEvents = document.getElementById('depotBoxEvents');
+            addButton(depotBoxEvents, "Top Box Found", {
+                boardName: "DepotBoxB",
+                type: "tag.found",
+                boxName: "BoxA"
+            });
+            addButton(depotBoxEvents, "Side Box Found", {
+                boardName: "DepotBoxA",
+                type: "tag.found",
+                boxName: "BoxA"
+            });
+
+            function addButton(container, name, payload) {
+                const button = document.createElement("button");
+                button.innerHTML = name;
+                button.addEventListener("click", () => {
+                    console.log(payload);
+                    ws.send(JSON.stringify(payload));
+                }, false);
+                container.appendChild(button);
+            }
+
+        })();
+
+    </script>
+
+</body>
+
+</html>
