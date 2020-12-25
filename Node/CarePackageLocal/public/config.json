@@ -67,6 +67,9 @@
         },
         {
             "name": "School"
+        },
+        {
+            "name": "Unknown"
         }
     ],
     "boxes": [
