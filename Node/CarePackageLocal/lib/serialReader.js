@@ -24,7 +24,7 @@ class SerialReader extends EventEmitter {
         console.log("Looking for Arduinos.");
         this.SerialPort.list((err, ports) => {
             ports.forEach((port) => {
-                if (port.manufacturer != undefined && port.manufacturer.indexOf("Arduino" > -1)) {
+                if (port.manufacturer != undefined) {
 
                     if (this.ActiveSerialPorts[port.comName] != undefined) {
                         console.log("Arduino already active: " + port.serialNumber + " " + port.comName);
