@@ -7,16 +7,17 @@
    Begin Settings
 */
 
-//#define DEBUG     // Uncoment to print raw values to serial instead of using COBS.
+//#define DEBUG       // Uncoment to print raw values to serial instead of using COBS.
 //#define TAG_ONLY  // Print only the tag in DEBUG mode, useful for programming tags.
 #define RETRIES 16  // Number of tries per loop for the NFC reader.
 #define TIMEOUT 100 // Removed message sent after this time without seeing tag.
+#define MAX_TAGS 2  // Max simultaneous tags supported by this hardware.
 
 /*
    End Settings
 */
 
-#define PN532_IRQ   (2)
+#define PN532_IRQ (2)
 #define PN532_RESET (3)
 Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 
@@ -30,24 +31,25 @@ Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 
 PacketSerial packetSerial;
 
-
-// Union to see values as bytes or
-typedef union id
+typedef union tagId
 {
   uint64_t value;
-  byte     bytes[8];
+  byte bytes[8];
 };
 
-bool tagPresent = false;
-id tagID;
-id newTagID;
-uint32_t tagTime;
+struct tagInfo
+{
+  tagId id;
+  uint32_t timestamp;
+  bool active;
+};
 
-uint8_t success;
+tagInfo tags[MAX_TAGS];
 
-void(* resetFunc) (void) = 0;
+void (*resetFunc)(void) = 0;
 
-void setup(void) {
+void setup(void)
+{
 
   Serial.begin(115200);
   packetSerial.setStream(&Serial);
@@ -57,10 +59,11 @@ void setup(void) {
 
   // Try to talk to reader.
   uint32_t versiondata = nfc.getFirmwareVersion();
-  if (!versiondata) {
+  if (!versiondata)
+  {
     sendMessage(BOARD_MISSING);
     delay(1000);
-    resetFunc();    
+    resetFunc();
   }
 
   sendMessage(BOARD_FOUND);
@@ -75,55 +78,77 @@ void setup(void) {
   sendMessage(BOARD_READY);
 }
 
-
-void loop(void) {
-  uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };
+void loop(void)
+{
+  uint8_t uid[] = {0, 0, 0, 0, 0, 0, 0};
   uint8_t uidLength;
 
-  // Remove timed-out cards.
-  if (tagPresent && (millis() - tagTime > TIMEOUT)) {
-    sendTagMessage(TAG_REMOVED, tagID);
-    tagPresent = false;
-  }
+  // Detect new tags.
+  bool tagDetected = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
 
-
-  // Detect new cards.
-  success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
-
-  if (success) {
-
+  // If a tag has been detected, store the id;
+  tagId detectedTagId;
+  if (tagDetected)
+  {
     // Only watch for 4-byte an 7-byte ids.
     if (uidLength == 4 || uidLength == 7)
     {
-
-      memcpy(&newTagID.bytes, &uid, 7);
-
-      byte messageType;
-
-      if (tagPresent && (newTagID.value != tagID.value)) {
-        // Remove old tag.
-        sendTagMessage(TAG_REMOVED, tagID);
-
-        // Add new tag.
-        tagID = newTagID;
-        sendTagMessage(TAG_FOUND, tagID);
-      }
-
-      if (!tagPresent) {
-        tagID = newTagID;
-        sendTagMessage(TAG_FOUND, tagID);
-        tagPresent = true;
-      }
-
-      tagTime = millis();
-
+      memcpy(&detectedTagId.bytes, &uid, 7);
     }
+  }
+
+  // Process the tag list.
+  bool tagFound = false;
+  int nextTagIndex = -1;
+  
+  for (int i = 0; i < MAX_TAGS; i++) {
+
+    // If a tag is detected and we have a match, update the time.
+    
+    if (tagDetected && tags[i].active && tags[i].id.value == detectedTagId.value) {
+      // We already know about this tag.
+      tags[i].timestamp = millis();
+      tagFound = true;
+    }    
+
+    // If a tag has timed out, remove it.
+    
+    if ( tags[i].active && millis() - tags[i].timestamp > TIMEOUT) {
+
+      // Send remove message.
+      sendTagMessage(TAG_REMOVED, tags[i].id);
+
+      // This tag has timed out;
+      tags[i].active = false;
+      tags[i].id.value = 0;
+      tags[i].timestamp = 0;
+    }
+
+    // Store an empty slot for new tags.
+
+    if (!tags[i].active) {
+      nextTagIndex = i;
+    }
+
+  }
+
+  // If the detected tag was not found, add it to the first empty slot.
+  if (tagDetected && !tagFound && nextTagIndex >= 0) {
+
+    // Send found message.
+    sendTagMessage(TAG_FOUND, detectedTagId);
+
+    tags[nextTagIndex].active = true;
+    tags[nextTagIndex].id = detectedTagId;
+    tags[nextTagIndex].timestamp = millis();
+
   }
 
   packetSerial.update();
 }
 
-void sendMessage(byte type) {
+void sendMessage(byte type)
+{
 #if defined(DEBUG)
   Serial.println(type);
 #else
@@ -131,18 +156,21 @@ void sendMessage(byte type) {
 #endif
 }
 
-void sendTagMessage(byte type, id tag) {
+void sendTagMessage(byte type, tagId tag)
+{
 
 #if defined(DEBUG) && defined(TAG_ONLY)
-  if (type == TAG_FOUND) {
-    
-  Serial.print("");
-  for (int i = 0; i < 7; i++) {
-    char hexString[2] = {0, 0};
-    sprintf(hexString, "%02X", tag.bytes[i]);
-    Serial.print(strupr(hexString));
-  }
-  Serial.println(""); 
+  if (type == TAG_FOUND)
+  {
+
+    Serial.print("");
+    for (int i = 0; i < 7; i++)
+    {
+      char hexString[2] = {0, 0};
+      sprintf(hexString, "%02X", tag.bytes[i]);
+      Serial.print(strupr(hexString));
+    }
+    Serial.println("");
   }
 #endif
 
@@ -152,7 +180,8 @@ void sendTagMessage(byte type, id tag) {
   Serial.print(" ");
   Serial.print("HEX: ");
 
-  for (int i = 0; i < 7; i++) {
+  for (int i = 0; i < 7; i++)
+  {
     char hexString[2] = {0, 0};
     sprintf(hexString, "%02X", tag.bytes[i]);
     Serial.print(strupr(hexString));
@@ -169,5 +198,4 @@ void sendTagMessage(byte type, id tag) {
 
   packetSerial.send(bytes, byteCount);
 #endif
-
 }
